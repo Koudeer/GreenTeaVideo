@@ -6,7 +6,8 @@ interface IVideo {
 
     fun getUrl(): String
 
-    fun onSurfaceTexture(mSurfaceTexture: SurfaceTexture)
+//    @Deprecated(message = "本来用来修复home键之后返回app黑屏的问题")
+//    fun onSurfaceTexture(mSurfaceTexture: SurfaceTexture)
 
     fun onPrepare()
 

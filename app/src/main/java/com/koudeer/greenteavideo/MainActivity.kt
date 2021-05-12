@@ -15,6 +15,6 @@ class MainActivity : AppCompatActivity() {
 
         mVideo = findViewById(R.id.video)
         mVideo.setUp(url)
-        mVideo.startVideo()
+//        mVideo.startVideo()
     }
 }

@@ -10,4 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+
+    <ImageView
+        android:id="@+id/img_start_pause"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@mipmap/start"
+        android:layout_centerInParent="true" />
+
 </RelativeLayout>

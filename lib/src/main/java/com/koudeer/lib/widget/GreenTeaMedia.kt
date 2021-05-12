@@ -25,10 +25,10 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
         mHandlerThread.start()
         mMediaHandler = Handler(mHandlerThread.looper)
 
-        mMediaPlayer = MediaPlayer()
-
         mMediaHandler.post {
             try {
+                mMediaPlayer = MediaPlayer()
+
                 mMediaPlayer.setOnPreparedListener(this)
                 mMediaPlayer.setOnBufferingUpdateListener(this)
                 mMediaPlayer.setOnInfoListener(this)
@@ -56,19 +56,25 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
     }
 
     override fun isPlaying(): Boolean {
-        return false
+        return mMediaPlayer.isPlaying
     }
 
     override fun release() {
-
+        mMediaHandler.post { mMediaPlayer.release() }
     }
 
+    /**
+     * 获取视频当前位置
+     */
     override fun getCurrentPosition(): Long {
-        return 0L
+        return mMediaPlayer.currentPosition.toLong()
     }
 
+    /**
+     * 获取总时长
+     */
     override fun getDuration(): Long {
-        return 0L
+        return mMediaPlayer.duration.toLong()
     }
 
     //SurfaceTextureListener
@@ -77,7 +83,9 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
             mSurfaceTexture = surface
             prepare()
         } else {
-            iVideo.onSurfaceTexture(surface)
+//            iVideo.onSurfaceTexture(surface)
+            //修复 home键之后返回app导致黑屏问题
+            mMediaHandler.post { mMediaPlayer.setSurface(Surface(surface)) }
         }
     }
 
@@ -100,25 +108,30 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
     }
 
     override fun onBufferingUpdate(mp: MediaPlayer?, percent: Int) {
+        Log.d(TAG, "onBufferingUpdate: $percent")
     }
 
     override fun onInfo(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+        Log.d(TAG, "onInfo: $what $extra")
         iVideo.onInfo(what, extra)
         return false
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+        Log.d(TAG, "onError: $what $extra")
         return false
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
+        Log.d(TAG, "onCompletion: ")
     }
 
     override fun onSeekComplete(mp: MediaPlayer?) {
+        Log.d(TAG, "onSeekComplete: ")
     }
 
     override fun onVideoSizeChanged(mp: MediaPlayer?, width: Int, height: Int) {
-
+        Log.d(TAG, "onVideoSizeChanged: $width $height")
     }
 
 

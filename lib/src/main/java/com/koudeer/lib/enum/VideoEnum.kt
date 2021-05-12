@@ -14,7 +14,7 @@ annotation class Status {
     }
 }
 
-val Int.show
+val Int.type
     get() = when (this) {
         Status.NORMAL -> "NORMAL"
         Status.PREPARE -> "PREPARE"
