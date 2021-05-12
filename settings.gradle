@@ -1,0 +1,3 @@
+rootProject.name = "GreenTeaVideo"
+include ':app'
+include ':lib'
