@@ -27,6 +27,7 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
 
     var mUrl = ""
     var mState: Int = Status.NORMAL
+    var ON_PAUSE_PLAYING = 0 //按下home键时，视频状态是处于PAUSE还是PLAYING状态
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -74,6 +75,11 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
         when (mState) {
             Status.PLAYING -> {
                 mMedia.pause()
+                ON_PAUSE_PLAYING = Status.PLAYING
+            }
+            Status.PAUSE -> {
+                mMedia.pause()
+                ON_PAUSE_PLAYING = Status.PAUSE
             }
         }
     }
@@ -82,7 +88,17 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
      * 在Resume生命周期使用
      */
     public fun onLifeCycleResume() {
-        mMedia.start()
+        when (ON_PAUSE_PLAYING) {
+            Status.PLAYING -> {
+                mMedia.start()
+                mState = Status.PLAYING
+            }
+            Status.PAUSE -> {
+                mMedia.pause()
+                mState = Status.PAUSE
+            }
+        }
+        ON_PAUSE_PLAYING = 0
     }
 
     /**
@@ -119,7 +135,6 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            // TODO: 2021/5/13 开始暂停事件并同时切换UI
             R.id.img_start_pause -> imgClick()
         }
     }
@@ -153,6 +168,6 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
     }
 
     override fun onCompletion() {
-
+        Log.d(TAG, "onCompletion: ")
     }
 }

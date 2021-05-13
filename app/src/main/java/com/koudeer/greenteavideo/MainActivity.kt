@@ -17,4 +17,14 @@ class MainActivity : AppCompatActivity() {
         mVideo.setUrl(url)
 //        mVideo.startVideo()
     }
+
+    override fun onResume() {
+        super.onResume()
+        mVideo.onLifeCycleResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mVideo.onLifeCyclePause()
+    }
 }
