@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
+import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.widget.FrameLayout
@@ -24,8 +25,8 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
     private lateinit var mSurfaceContainer: FrameLayout
     private lateinit var mImgStartPause: ImageView
 
-    private var mUrl = ""
-    private var mState: Int = Status.NORMAL
+    var mUrl = ""
+    var mState: Int = Status.NORMAL
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -50,15 +51,38 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
         mImgStartPause.setOnClickListener(this)
     }
 
-    public fun setUp(url: String) {
+    public fun setUrl(url: String) {
         if (TextUtils.isEmpty(url)) throw IllegalArgumentException("url must not be null")
         this.mUrl = url
     }
 
-    public fun startVideo(): Unit {
-        if (TextUtils.isEmpty(mUrl)) throw RuntimeException("pls invoke #setUp(String) function add video url")
+    public fun startVideo(url: String) {
+        setUrl(url)
+        startVideo()
+    }
+
+    public fun startVideo() {
+        if (TextUtils.isEmpty(mUrl)) throw RuntimeException("pls invoke #setUrl(String) function add video url")
         mMedia = GreenTeaMedia(this)
         addTextureView()
+    }
+
+    /**
+     * 在Pause生命周期使用
+     */
+    public fun onLifeCyclePause() {
+        when (mState) {
+            Status.PLAYING -> {
+                mMedia.pause()
+            }
+        }
+    }
+
+    /**
+     * 在Resume生命周期使用
+     */
+    public fun onLifeCycleResume() {
+        mMedia.start()
     }
 
     /**
@@ -74,9 +98,29 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
         mSurfaceContainer.addView(mTextureView)
     }
 
+    private fun imgClick() {
+        when (mState) {
+            Status.NORMAL -> {
+                startVideo()
+                mImgStartPause.toggle(mState)
+            }
+            Status.PLAYING -> {
+                mMedia.pause()
+                mState = Status.PAUSE
+                mImgStartPause.toggle(mState)
+            }
+            Status.PAUSE -> {
+                mMedia.start()
+                mState = Status.PLAYING
+                mImgStartPause.toggle(mState)
+            }
+        }
+    }
+
     override fun onClick(v: View?) {
         when (v?.id) {
-            R.id.img_start_pause -> startVideo()
+            // TODO: 2021/5/13 开始暂停事件并同时切换UI
+            R.id.img_start_pause -> imgClick()
         }
     }
 
@@ -102,5 +146,13 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
                 mState = Status.PLAYING
             }
         }
+    }
+
+    override fun onSurfaceTexture(mSurfaceTexture: SurfaceTexture) {
+        mTextureView.setSurfaceTexture(mSurfaceTexture)
+    }
+
+    override fun onCompletion() {
+
     }
 }

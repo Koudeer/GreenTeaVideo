@@ -80,12 +80,13 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
     //SurfaceTextureListener
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         if (mSurfaceTexture == null) {
+            Log.d(TAG, "onSurfaceTextureAvailable: 1")
             mSurfaceTexture = surface
             prepare()
         } else {
-//            iVideo.onSurfaceTexture(surface)
+            Log.d(TAG, "onSurfaceTextureAvailable: 2")
             //修复 home键之后返回app导致黑屏问题
-            mMediaHandler.post { mMediaPlayer.setSurface(Surface(surface)) }
+            iVideo.onSurfaceTexture(mSurfaceTexture!!)
         }
     }
 
@@ -113,7 +114,7 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
 
     override fun onInfo(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         Log.d(TAG, "onInfo: $what $extra")
-        iVideo.onInfo(what, extra)
+        mHandler.post { iVideo.onInfo(what, extra) }
         return false
     }
 
@@ -124,6 +125,7 @@ class GreenTeaMedia(iVideo: IVideo) : MediaInterface(iVideo), MediaPlayer.OnPrep
 
     override fun onCompletion(mp: MediaPlayer?) {
         Log.d(TAG, "onCompletion: ")
+        iVideo.onCompletion()
     }
 
     override fun onSeekComplete(mp: MediaPlayer?) {
