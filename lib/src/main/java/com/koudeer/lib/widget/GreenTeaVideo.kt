@@ -1,29 +1,34 @@
 package com.koudeer.lib.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
-import android.view.Surface
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.TextureView
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.ProgressBar
 import com.koudeer.lib.R
 import com.koudeer.lib.enum.Status
 import com.koudeer.lib.enum.type
-import java.lang.RuntimeException
 
-class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
-    private val TAG = "GreenTeaVideo"
+class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchListener {
+    val TAG = "GreenTeaVideo"
 
     private lateinit var mTextureView: TextureView
     private lateinit var mMedia: MediaInterface
 
+    private lateinit var mGesture: GestureDetector
+
     private lateinit var mSurfaceContainer: FrameLayout
-    private lateinit var mImgStartPause: ImageView
+    lateinit var mImgStartPause: ImageView
+    lateinit var mProgress: ProgressBar
 
     var mUrl = ""
     var mState: Int = Status.NORMAL
@@ -39,6 +44,7 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
 
     init {
         inflate(context, R.layout.layout_video, this)
+        mGesture = supportGesture()
         initView()
         initEvent()
     }
@@ -46,10 +52,15 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
     private fun initView() {
         mSurfaceContainer = findViewById(R.id.surface_container)
         mImgStartPause = findViewById(R.id.img_start_pause)
+        mProgress = findViewById(R.id.progress)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun initEvent() {
         mImgStartPause.setOnClickListener(this)
+        mSurfaceContainer.setOnTouchListener(this)
+        //不然Gesture只会触发longpress
+        mSurfaceContainer.isClickable = true
     }
 
     public fun setUrl(url: String) {
@@ -115,20 +126,19 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
     }
 
     private fun imgClick() {
+        Log.d(TAG, "imgClick: ${mState.type}")
         when (mState) {
             Status.NORMAL -> {
                 startVideo()
-                mImgStartPause.toggle(mState)
+                imgUIToggle(mState)
             }
             Status.PLAYING -> {
                 mMedia.pause()
-                mState = Status.PAUSE
-                mImgStartPause.toggle(mState)
+                imgUIToggle(mState)
             }
             Status.PAUSE -> {
                 mMedia.start()
-                mState = Status.PLAYING
-                mImgStartPause.toggle(mState)
+                imgUIToggle(mState)
             }
         }
     }
@@ -137,6 +147,15 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
         when (v?.id) {
             R.id.img_start_pause -> imgClick()
         }
+    }
+
+    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        Log.d(TAG, "onTouch: ")
+        if (v?.id == R.id.surface_container){
+
+            mGesture.onTouchEvent(event!!)
+        }
+        return false
     }
 
     override fun getUrl(): String = mUrl
@@ -158,6 +177,7 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
         //MEDIA_INFO_VIDEO_RENDERING_START 表示mediaplay开始渲染第一帧 说明进入PLAYING状态
         if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
             if (mState == Status.PREPARE) {
+                Log.d(TAG, "onInfo: PLAYING")
                 mState = Status.PLAYING
             }
         }
@@ -170,4 +190,5 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener {
     override fun onCompletion() {
         Log.d(TAG, "onCompletion: ")
     }
+
 }

@@ -15,7 +15,14 @@
         android:id="@+id/img_start_pause"
         android:layout_width="45dp"
         android:layout_height="45dp"
-        android:src="@mipmap/start"
+        android:layout_centerInParent="true"
+        android:src="@mipmap/start" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:visibility="invisible"
         android:layout_centerInParent="true" />
 
 </RelativeLayout>
