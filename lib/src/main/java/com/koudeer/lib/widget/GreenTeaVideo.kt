@@ -17,6 +17,7 @@ import android.widget.ProgressBar
 import com.koudeer.lib.R
 import com.koudeer.lib.enum.Status
 import com.koudeer.lib.enum.type
+import java.util.*
 
 class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchListener {
     val TAG = "GreenTeaVideo"
@@ -29,6 +30,9 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
     private lateinit var mSurfaceContainer: FrameLayout
     lateinit var mImgStartPause: ImageView
     lateinit var mProgress: ProgressBar
+
+    private var mTimer: Timer? = null
+    private var mTimerTask: ControllerViewTimerTask? = null
 
     var mUrl = ""
     var mState: Int = Status.NORMAL
@@ -135,12 +139,27 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
             Status.PLAYING -> {
                 mMedia.pause()
                 imgUIToggle(mState)
+                mState = Status.PAUSE
             }
             Status.PAUSE -> {
                 mMedia.start()
                 imgUIToggle(mState)
+                mState = Status.PLAYING
             }
         }
+        Log.d(TAG, "imgClick: ${mState.type}")
+    }
+
+    public fun startControllerViewTimer(): Unit {
+        cancelControllerViewTimer()
+        mTimer = Timer();
+        mTimerTask = ControllerViewTimerTask{allControllerInvisible()}
+        mTimer?.schedule(mTimerTask, 2500)
+    }
+
+    public fun cancelControllerViewTimer(): Unit {
+        mTimer?.cancel()
+        mTimerTask?.cancel()
     }
 
     override fun onClick(v: View?) {
@@ -150,8 +169,8 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        Log.d(TAG, "onTouch: ")
-        if (v?.id == R.id.surface_container){
+        Log.d(TAG, "onTouch: ${mState.type}")
+        if (v?.id == R.id.surface_container) {
 
             mGesture.onTouchEvent(event!!)
         }
@@ -176,10 +195,18 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
         Log.d(TAG, "onInfo: $what $extra ${mState.type}")
         //MEDIA_INFO_VIDEO_RENDERING_START 表示mediaplay开始渲染第一帧 说明进入PLAYING状态
         if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
+            //这里先不考虑进度记忆
             if (mState == Status.PREPARE) {
-                Log.d(TAG, "onInfo: PLAYING")
+                Log.d(TAG, "onInfo: PLAYING ${Thread.currentThread().name}")
                 mState = Status.PLAYING
+                mProgress.visibility = INVISIBLE
             }
+        } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
+            Log.d(TAG, "onInfo: 开始缓冲")
+            //开始缓冲
+        } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END) {
+            Log.d(TAG, "onInfo: 结束缓冲")
+            //结束缓冲
         }
     }
 
@@ -191,4 +218,10 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
         Log.d(TAG, "onCompletion: ")
     }
 
+    class ControllerViewTimerTask(val fn: () -> Unit) : TimerTask() {
+
+        override fun run() {
+            fn.invoke()
+        }
+    }
 }
