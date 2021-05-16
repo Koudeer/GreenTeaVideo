@@ -154,7 +154,7 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
         cancelControllerViewTimer()
         mTimer = Timer();
         mTimerTask = ControllerViewTimerTask{allControllerInvisible()}
-        mTimer?.schedule(mTimerTask, 2500)
+        mTimer?.schedule(mTimerTask, 5000)
     }
 
     public fun cancelControllerViewTimer(): Unit {
@@ -169,7 +169,6 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        Log.d(TAG, "onTouch: ${mState.type}")
         if (v?.id == R.id.surface_container) {
 
             mGesture.onTouchEvent(event!!)
@@ -218,6 +217,9 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
         Log.d(TAG, "onCompletion: ")
     }
 
+    /**
+     * 控制器TimerTask
+     */
     class ControllerViewTimerTask(val fn: () -> Unit) : TimerTask() {
 
         override fun run() {

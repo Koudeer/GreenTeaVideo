@@ -23,3 +23,12 @@ val Int.type
         Status.ERROR -> "ERROR"
         else -> "NULL"
     }
+
+@IntDef
+@kotlin.annotation.Retention(AnnotationRetention.SOURCE)
+annotation class Screen {
+    companion object {
+        const val NORMAL = 0
+        const val FULL = 1
+    }
+}

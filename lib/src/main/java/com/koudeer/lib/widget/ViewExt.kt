@@ -21,11 +21,11 @@ fun GreenTeaVideo.imgUIToggle(type: Int) {
             this.mProgress.visibility = View.VISIBLE
         }
         Status.PAUSE -> {
-            this.mImgStartPause.setImageResource(R.mipmap.start)
+            this.mImgStartPause.setImageResource(R.mipmap.pause)
 //            this.mImgStartPause.visibility = View.INVISIBLE
         }
         Status.PLAYING -> {
-            this.mImgStartPause.setImageResource(R.mipmap.pause)
+            this.mImgStartPause.setImageResource(R.mipmap.start)
 //            this.mImgStartPause.visibility = View.INVISIBLE
         }
     }
@@ -37,7 +37,6 @@ fun GreenTeaVideo.supportGesture(): GestureDetector =
             override fun onDoubleTap(e: MotionEvent?): Boolean {
                 Log.d(TAG, "onDoubleTap: ${mState.type}")
                 mImgStartPause.performClick()
-                imgUIToggle(mState)
                 return super.onDoubleTap(e)
             }
 
@@ -59,6 +58,7 @@ fun GreenTeaVideo.allControllerEvent() {
         startControllerViewTimer()
     } else {
         mImgStartPause.visibility = View.INVISIBLE
+        cancelControllerViewTimer()
     }
 }
 
