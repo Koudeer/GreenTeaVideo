@@ -14,6 +14,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.SeekBar
 import com.koudeer.lib.R
 import com.koudeer.lib.enum.Status
 import com.koudeer.lib.enum.type
@@ -25,14 +26,18 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
     private lateinit var mTextureView: TextureView
     private lateinit var mMedia: MediaInterface
 
-    private lateinit var mGesture: GestureDetector
+    private var mGesture: GestureDetector
 
     private lateinit var mSurfaceContainer: FrameLayout
     lateinit var mImgStartPause: ImageView
     lateinit var mProgress: ProgressBar
+    lateinit var mSeekBar: SeekBar
 
     private var mTimer: Timer? = null
-    private var mTimerTask: ControllerViewTimerTask? = null
+    private var mTimerTask: ALLTimerTask? = null
+
+    private var mProgressTimer: Timer? = null
+    private var mProgressTask: ALLTimerTask? = null
 
     var mUrl = ""
     var mState: Int = Status.NORMAL
@@ -57,6 +62,7 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
         mSurfaceContainer = findViewById(R.id.surface_container)
         mImgStartPause = findViewById(R.id.img_start_pause)
         mProgress = findViewById(R.id.progress)
+        mSeekBar = findViewById(R.id.seekbar)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -153,13 +159,39 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
     public fun startControllerViewTimer(): Unit {
         cancelControllerViewTimer()
         mTimer = Timer();
-        mTimerTask = ControllerViewTimerTask{allControllerInvisible()}
+        mTimerTask = ALLTimerTask { allControllerInvisible() }
         mTimer?.schedule(mTimerTask, 5000)
     }
 
     public fun cancelControllerViewTimer(): Unit {
         mTimer?.cancel()
         mTimerTask?.cancel()
+    }
+
+    fun startProgressTimer(): Unit {
+        cancelProgressTimer()
+        mProgressTimer = Timer()
+        mProgressTask = ALLTimerTask { updateSeekProgress() }
+        mProgressTimer?.schedule(mProgressTask, 0, 300)
+    }
+
+    fun cancelProgressTimer(): Unit {
+        mProgressTimer?.cancel()
+        mProgressTask?.cancel()
+    }
+
+    fun getCurrentPosition(): Long {
+        if (mState == Status.PAUSE || mState == Status.PLAYING) {
+            return mMedia.getCurrentPosition()
+        }
+        return 0L
+    }
+
+    fun getDuration(): Long {
+        if (mState == Status.PAUSE || mState == Status.PLAYING) {
+            return mMedia.getDuration()
+        }
+        return 0L
     }
 
     override fun onClick(v: View?) {
@@ -199,6 +231,7 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
                 Log.d(TAG, "onInfo: PLAYING ${Thread.currentThread().name}")
                 mState = Status.PLAYING
                 mProgress.visibility = INVISIBLE
+                startProgressTimer()
             }
         } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
             Log.d(TAG, "onInfo: 开始缓冲")
@@ -218,9 +251,9 @@ class GreenTeaVideo : FrameLayout, IVideo, View.OnClickListener, View.OnTouchLis
     }
 
     /**
-     * 控制器TimerTask
+     * 所有TimerTask
      */
-    class ControllerViewTimerTask(val fn: () -> Unit) : TimerTask() {
+    class ALLTimerTask(val fn: () -> Unit) : TimerTask() {
 
         override fun run() {
             fn.invoke()

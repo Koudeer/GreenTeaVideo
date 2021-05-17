@@ -4,8 +4,6 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.widget.ImageView
-import androidx.core.view.isVisible
 import com.koudeer.lib.R
 import com.koudeer.lib.enum.Status
 import com.koudeer.lib.enum.type
@@ -65,5 +63,19 @@ fun GreenTeaVideo.allControllerEvent() {
 fun GreenTeaVideo.allControllerInvisible(): Unit {
     post {
         mImgStartPause.visibility = View.INVISIBLE
+    }
+}
+
+/**
+ * 更新进度
+ */
+fun GreenTeaVideo.updateSeekProgress() {
+    if (mState == Status.PLAYING || mState == Status.PAUSE) {
+        post {
+            val position = getCurrentPosition()
+            val duration = getDuration()
+            val progress = (position * 100 / if (duration == 0L) 1 else duration).toInt()
+            mSeekBar.progress = progress
+        }
     }
 }
